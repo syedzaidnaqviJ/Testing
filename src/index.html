@@ -1,15 +1,81 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>AngularProjects</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="mat-typography">
-  <app-root></app-root>
+<body class="bg-gradient-to-br from-blue-100 to-blue-400 min-h-screen flex items-center justify-center font-sans">
+
+  <div class="bg-white p-8 rounded-3xl shadow-lg w-full max-w-xl space-y-6">
+    <h1 class="text-3xl font-bold text-center">🌤️ Weather Dashboard</h1>
+
+    <div class="flex space-x-4">
+      <input
+        id="cityInput"
+        type="text"
+        placeholder="Enter city name"
+        class="flex-1 border rounded-xl p-2 outline-none"
+      />
+      <button
+        onclick="getWeather()"
+        class="bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600 transition"
+      >
+        Search
+      </button>
+    </div>
+
+    <div id="weather" class="text-center space-y-4 hidden">
+      <h2 id="cityName" class="text-2xl font-semibold"></h2>
+      <img id="weatherIcon" class="mx-auto w-20" />
+      <p id="temp" class="text-4xl"></p>
+      <p id="desc" class="capitalize text-gray-600"></p>
+    </div>
+
+    <div id="forecast" class="grid grid-cols-2 sm:grid-cols-5 gap-4 hidden">
+      <!-- JS will insert forecast here -->
+    </div>
+  </div>
+
+  <script>
+    const apiKey = 'YOUR_API_KEY_HERE';
+
+    function getWeather() {
+      const city = document.getElementById('cityInput').value;
+      if (!city) return;
+
+      // Current Weather
+      fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('cityName').textContent = data.name;
+          document.getElementById('weatherIcon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+          document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°C`;
+          document.getElementById('desc').textContent = data.weather[0].description;
+          document.getElementById('weather').classList.remove('hidden');
+        });
+
+      // Forecast
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('forecast');
+          container.innerHTML = '';
+          for (let i = 0; i < data.list.length; i += 8) {
+            const day = data.list[i];
+            const date = new Date(day.dt_txt).toLocaleDateString('en-US', { weekday: 'short' });
+            container.innerHTML += `
+              <div class="bg-blue-100 p-3 rounded-xl text-center">
+                <p class="font-bold">${date}</p>
+                <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png" class="mx-auto w-12" />
+                <p>${Math.round(day.main.temp)}°C</p>
+              </div>
+            `;
+          }
+          container.classList.remove('hidden');
+        });
+    }
+  </script>
 </body>
 </html>
